@@ -1,7 +1,9 @@
 const tablero = document.querySelector("#tablero")
 const jugadorDisplay = document.querySelector("#jugador")
-const InfoDisplay = document.querySelector("#info-display")
+const infoDisplay = document.querySelector("#info-display")
 const width = 8
+let turnoJugador = 'negro'
+jugadorDisplay.textContent = 'negro'
 
 const piezasIniciales = [
     torre, caballo, alfil, reina, rey, alfil, caballo, torre,
@@ -29,10 +31,10 @@ function crearTablero() {
             cuadrado.classList.add(i % 2 === 0 ? "brown" : "beige")
         }
         if (i <= 15) {
-            cuadrado.firstChild.firstChild.classList.add('black')
+            cuadrado.firstChild.firstChild.classList.add('negro')
         }
         if (i >= 48) {
-            cuadrado.firstChild.firstChild.classList.add('white')
+            cuadrado.firstChild.firstChild.classList.add('blanco')
         }
         tablero.append(cuadrado)
     }) 
@@ -40,7 +42,7 @@ function crearTablero() {
 crearTablero()
 
 
-const allCuadrados = document.querySelectorAll("#tablero .cuadrado")
+const allCuadrados = document.querySelectorAll(".cuadrado")
 
 allCuadrados.forEach(cuadrado => {
     cuadrado.addEventListener('dragstart', dragStart)
@@ -48,20 +50,91 @@ allCuadrados.forEach(cuadrado => {
     cuadrado.addEventListener('drop', dragDrop)
 })
 
-let posicionStartId
+let posInicioId
 let draggedElement
 
 function dragStart(e) {
-    posicionStartId = e.target.parentNode.getAttribute('cuadrado-id')
+    posInicioId = e.target.parentNode.getAttribute('cuadrado-id')
     draggedElement = e.target
 }   
 
 function dragOver(e) {
     e.preventDefault()
 }
-
 function dragDrop(e) {
     e.stopPropagation()
-    // e.target.parentNode.append(draggedElement)
-    e.target.append(draggedElement)
+    const turnoCorrecto = draggedElement.firstChild.classList.contains(turnoJugador)
+    const tomada = e.target.classList.contains('pieza')
+    const valido = revisarValidez(e.target)
+    const turnoOponente = turnoJugador === 'blanco' ? 'negro' : 'blanco'
+    const tomadaXoponente = e.target.firstChild?.classList.contains(turnoOponente)
+    
+    if (turnoCorrecto) {
+        //se debe revisar esto primero
+        if (tomadaXoponente && valido) {
+            e.target.parentNode.append(draggedElement)
+            e.target.remove()
+            cambiarJugador()
+            return
+        }
+        //despues revisar esto
+        if (tomada && !tomadaXoponente) {
+            infoDisplay.textContent = "Haz un movimiento valido!!"
+            setTimeout(() => infoDisplay.textContent = "", 2000)
+            return
+        }
+        if (valido) {
+            e.target.append(draggedElement)
+            cambiarJugador()
+            return
+        }
+    }
+}
+
+function revisarValidez(target) {
+    const targetId = Number(target.getAttribute('cuadrado-id')) || Number(target.parentNode.getAttribute('cuadrado-id'))
+    const inicioId = Number(posInicioId)
+    const pieza = draggedElement.id
+    console.log('targetId', targetId)
+    console.log('inicioId', inicioId)
+    console.log('pieza', pieza)
+
+    switch(pieza) {
+        case 'peon' :
+            const lineaInicial = [8,9,10,11,12,13,14,15]
+            if (
+                lineaInicial.includes(inicioId) && inicioId + width *2 === targetId ||
+                inicioId + width === targetId ||
+                inicioId + width - 1 === targetId  && document.querySelector(`[cuadrado-id="${inicioId + width - 1}"]`) ||
+                inicioId + width + 1 === targetId  && document.querySelector(`[cuadrado-id="${inicioId + width + 1}"]`)
+                ) {
+                return true
+            }
+            break;
+    //     case 'caballo' :
+                
+    }
+}
+
+function cambiarJugador() {
+    if (turnoJugador === "negro"){
+        invertirIds()
+        turnoJugador = "blanco"
+        jugadorDisplay.textContent = "blanco"
+    } else {
+        revertirIds()
+        turnoJugador = "negro"
+        jugadorDisplay.textContent = "negro"
+    }
+}
+
+function invertirIds() {
+    const allCuadrados = document.querySelectorAll(".cuadrado")
+    allCuadrados.forEach((cuadrado, i) => 
+        cuadrado.setAttribute('cuadrado-id', (width * width - 1) - i))
+}
+
+function revertirIds() {
+    const allCuadrados = document.querySelectorAll(".cuadrado")
+    allCuadrados.forEach((cuadrado, i) => cuadrado.setAttribute('cuadrado-id', i))
 }
