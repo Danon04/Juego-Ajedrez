@@ -26,9 +26,9 @@ function crearTablero() {
         cuadrado.setAttribute('cuadrado-id', i)
         const linea = Math.floor( (63 - i) / 8 ) + 1
         if (linea % 2 == 0) {
-            cuadrado.classList.add(i % 2 === 0 ? "beige" : "brown")
+            cuadrado.classList.add(i % 2 === 0 ? "color1" : "color2")
         } else {
-            cuadrado.classList.add(i % 2 === 0 ? "brown" : "beige")
+            cuadrado.classList.add(i % 2 === 0 ? "color2" : "color1")
         }
         if (i <= 15) {
             cuadrado.firstChild.firstChild.classList.add('negro')
